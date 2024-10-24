@@ -31,6 +31,33 @@ const getDailyReport = async (req, res) => {
     }
 };
 
+const getLatestWeatherByCity = (req, res) => {
+    const city = req.params.city;
+
+    const query = `
+    SELECT * FROM weather_data 
+    WHERE LOWER(city) = LOWER(?) 
+    ORDER BY timestamp DESC 
+    LIMIT 1;
+    `;
+
+    db.get(query, [city], (err, row) => {
+        if (err) {
+            console.error("Error fetching latest weather data:", err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        if (!row) {
+            return res.status(404).json({ message: 'No data found for the specified city' });
+        }
+
+        const io = req.app.get('socketio');
+        io.emit('weatherUpdate', row);
+        res.json(row);
+    });
+};
+
 module.exports = {
     getDailyReport,
+    getLatestWeatherByCity,
 };
