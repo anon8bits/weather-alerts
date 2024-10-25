@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
-import { 
-  Cloud, 
-  Sun, 
-  CloudRain, 
-  Thermometer, 
+import {
+  Cloud,
+  Sun,
+  CloudRain,
+  Thermometer,
   Droplet,
   CloudFog,
   Cloudy,
@@ -12,7 +12,18 @@ import {
 import { WeatherContext } from '../contexts/WeatherProvider';
 
 const WeatherCard = () => {
-  const { latestWeather, loading, error } = useContext(WeatherContext);
+  const { latestWeather, loading, error, unit } = useContext(WeatherContext);
+
+  const celsiusToFahrenheit = (celsius) => {
+    return (celsius * 9 / 5) + 32;
+  };
+
+  const formatTemperature = (celsius) => {
+    if (unit === 'fahrenheit') {
+      return Math.round(celsiusToFahrenheit(celsius));
+    }
+    return Math.round(celsius);
+  };
 
   if (loading) {
     return (
@@ -70,7 +81,7 @@ const WeatherCard = () => {
         <div className="text-center mb-6">
           <p className="text-gray-300 mb-2">{latestWeather.weather}</p>
           <p className="text-4xl font-bold text-white">
-            {Math.round(latestWeather.temperature)}°C
+            {formatTemperature(latestWeather.temperature)}°{unit === 'celsius' ? 'C' : 'F'}
           </p>
         </div>
 
@@ -79,7 +90,9 @@ const WeatherCard = () => {
             <Thermometer className="text-orange-400" size={24} />
             <div>
               <p className="text-sm text-gray-300">Feels Like</p>
-              <p className="font-medium">{Math.round(latestWeather.feels_like)}°C</p>
+              <p className="font-medium">
+                {formatTemperature(latestWeather.feels_like)}°{unit === 'celsius' ? 'C' : 'F'}
+              </p>
             </div>
           </div>
 

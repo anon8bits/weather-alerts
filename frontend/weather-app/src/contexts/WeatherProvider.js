@@ -6,7 +6,9 @@ const SERVER_URL = 'http://localhost:5000';
 export const WeatherContext = createContext({
   latestWeather: null,
   loading: true,
-  error: null
+  error: null,
+  unit: 'celsius',
+  setUnit: () => {}
 });
 
 export const WeatherProvider = ({ children, selectedCity }) => {
@@ -14,6 +16,14 @@ export const WeatherProvider = ({ children, selectedCity }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [socket] = useState(() => io(SERVER_URL));
+  const [unit, setUnit] = useState(() => {
+    return localStorage.getItem('preferredTempUnit') || 'celsius';
+  });
+
+  // Save unit preference to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('preferredTempUnit', unit);
+  }, [unit]);
 
   useEffect(() => {
     setLoading(true);
@@ -46,7 +56,6 @@ export const WeatherProvider = ({ children, selectedCity }) => {
 
     socket.on('weatherUpdate', handleWeatherUpdate);
 
-    // Error handling for socket connection
     socket.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
       setError('Failed to connect to weather updates');
@@ -59,7 +68,13 @@ export const WeatherProvider = ({ children, selectedCity }) => {
   }, [selectedCity, socket]);
 
   return (
-    <WeatherContext.Provider value={{ latestWeather, loading, error }}>
+    <WeatherContext.Provider value={{ 
+      latestWeather,
+      loading,
+      error,
+      unit,
+      setUnit
+    }}>
       {children}
     </WeatherContext.Provider>
   );

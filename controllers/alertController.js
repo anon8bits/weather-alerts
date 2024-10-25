@@ -1,14 +1,14 @@
 const { createAlert, getAlerts } = require('../models/alertModel');
 
 const setAlert = async (req, res) => {
-    const { email, type, threshold } = req.body;
+    const { email, type, threshold, city } = req.body;
 
-    if (!email || !type || threshold === undefined) {
+    if (!email || !type || threshold === undefined || !city) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
     try {
-        await createAlert(email, type, threshold);
+        await createAlert(email, type, threshold, city);    
         res.json({ message: 'Alert set successfully' });
     } catch (err) {
         res.status(500).json({ error: 'Error setting alert' });
