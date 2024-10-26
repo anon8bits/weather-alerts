@@ -1,35 +1,48 @@
 # Use Node.js as the base image
 FROM node:20
 
-# Set up backend working directory
+# Set up working directory
 WORKDIR /app
+
+# Copy backend package files first and install dependencies
+COPY package*.json ./
+RUN npm install
 
 # Copy backend files
-COPY package*.json ./
 COPY app.js ./
 COPY db.js ./
-COPY routes ./routes
-COPY models ./models
-COPY controllers ./controllers
-COPY cron-jobs ./cron-jobs
+COPY routes/ ./routes/
+COPY models/ ./models/
+COPY controllers/ ./controllers/
+COPY cron-jobs/ ./cron-jobs/
 
-# Install backend dependencies
+# Copy the create-env.sh script and make it executable
+COPY create-env.sh ./
+RUN chmod +x create-env.sh
+
+# Set up frontend
+WORKDIR /app/frontend/weather-app
+COPY frontend/weather-app/package*.json ./
 RUN npm install
 
-# Set up frontend files
-COPY ./frontend/weather-app /frontend/weather-app
-WORKDIR /frontend/weather-app
+# Copy frontend files
+COPY frontend/weather-app/ ./
 
-# Install frontend dependencies
-RUN npm install
+# Go back to app root
+WORKDIR /app
 
-# Expose the necessary ports (backend 5000, frontend 3000, adjust if different)
+# Expose ports
 EXPOSE 5000 3000
 
-# Script to create the .env file
-WORKDIR /app
-COPY create-env.sh /app/create-env.sh
-RUN chmod +x /app/create-env.sh
+# Create a startup script
+RUN echo '#!/bin/bash\n\
+./create-env.sh\n\
+node cron-jobs/weatherUpdate.js &\n\
+cd /app && npm start &\n\
+cd /app/frontend/weather-app && npm start\n\
+wait' > /app/start.sh
 
-# Start backend server, cron jobs, and frontend app
-CMD ["bash", "-c", "/app/create-env.sh && npm start & node cron-jobs/weatherUpdate.js & cd /frontend/weather-app && npm start"]
+RUN chmod +x /app/start.sh
+
+# Set the startup script as the entry point
+CMD ["/app/start.sh"]

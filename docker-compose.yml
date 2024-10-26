@@ -1,23 +1,13 @@
 version: '3'
 services:
-  backend:
+  app:
     build: .
-    working_dir: /app
-    command: ["bash", "-c", "./create-env.sh && npm start & node cron-jobs/weatherUpdate.js"]
     ports:
-      - "5000:5000"  # Expose backend on port 5000
+      - "5000:5000"
+      - "3000:3000"
     environment:
-      - OPENWEATHER_API_KEY
-      - EMAIL_USER
-      - EMAIL_PASSWORD
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
     volumes:
-      - .:/app  # Mount the root directory to keep files in sync
-
-  frontend:
-    build: .
-    working_dir: /frontend/weather-app
-    command: ["npm", "start"]
-    ports:
-      - "3000:3000"  # Expose frontend on port 3000
-    volumes:
-      - ./frontend/weather-app:/frontend/weather-app  # Mount frontend directory
+      - ./:/app
